@@ -1,0 +1,104 @@
+<style>
+  #svgboard {
+    width: 100vw;
+    height: 100vh;
+  }
+</style>
+
+<html>
+<head>
+  <title>Learn D3 in 5 minutes</title>
+</head>
+<body>
+<div id="divboard">
+</div>
+<button onclick="pushImprove()">Improve</button>
+<script src='https://d3js.org/d3.v5.min.js'></script>
+
+<script>
+function pushImprove() {
+  svg.selectAll("g").remove();
+  var path = svg.append("g").selectAll("path");
+  improvedPoints = improvePoints(improvedPoints, 1);
+  path.data(voronoi.polygons(improvedPoints)).enter().append("path").attr("stroke","green")
+    .attr("fill", function(d, i) {return c10[i%10]})
+    .attr("d", polygon);
+  svg.selectAll("circle").remove();
+  svg.selectAll("circle").data(improvedPoints).enter().append("circle").attr("r", 3)
+    .attr("cx", function(d){return d[0];})
+    .attr("cy", function(d){return d[1];});
+}
+
+var defaultExtent = {
+    width: 1,
+    height: 1
+};
+
+function vh(v) {
+  var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+  return (v * h) / 100;
+}
+
+function vw(v) {
+  var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+  return (v * w) / 100;
+}
+
+function vmin(v) {
+  return Math.min(vh(v), vw(v));
+}
+
+function vmax(v) {
+  return Math.max(vh(v), vw(v));
+}
+
+function centroid(pts) {
+    var x = 0;
+    var y = 0;
+    for (var i = 0; i < pts.length; i++) {
+        x += pts[i][0];
+        y += pts[i][1];
+    }
+    return [x/pts.length, y/pts.length];
+}
+
+function improvePoints(pts, n, extent) {
+    n = n || 1;
+    extent = [[0, 0], [width, height]];
+    for (var i = 0; i < n; i++) {
+        pts = voronoi(pts, extent)
+            .polygons(pts)
+            .map(centroid);
+    }
+    return pts;
+}
+
+function polygon(d) {
+  return "M"+d.join("L") + "Z";
+}
+
+  let width = 500;
+  let height = 500;
+  var c10 = d3.schemePaired;
+  var randomPoints = [];
+  randomPoints = d3.range(1024).map(function(d) {
+    return [Math.random()*width, Math.random()*height];
+  });
+  var voronoi = d3.voronoi().extent([[0, 0], [width, height]]);
+  var improvedPoints = improvePoints(randomPoints, 0);
+  // var points = voronoi.polygons(improvedPoints);
+  // console.log(voronoiPoints);
+  var svg= d3.select("body").append("svg").attr("width", width).attr("height", height);
+
+  var path = svg.append("g").selectAll("path")
+  path.data(voronoi.polygons(improvedPoints)).enter().append("path").attr("stroke","green")
+    .attr("fill", function(d, i) {return c10[i%10]})
+    .attr("d", polygon);
+
+  svg.selectAll("circle").data(improvedPoints).enter().append("circle").attr("r", 3)
+    .attr("cx", function(d){return d[0];})
+    .attr("cy", function(d){return d[1];});
+</script>
+</body>
+</html>
+
